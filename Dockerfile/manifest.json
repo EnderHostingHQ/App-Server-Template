@@ -1,0 +1,24 @@
+{
+    "python": {
+        "3.10": {
+            "config": "https://app-server.endkind.cloud/Dockerfile/python/3.10/config.json",
+            "end_of_life": "2026-10-31"
+        },
+        "3.11": {
+            "config": "https://app-server.endkind.cloud/Dockerfile/python/3.11/config.json",
+            "end_of_life": "2027-10-31"
+        },
+        "3.12": {
+            "config": "https://app-server.endkind.cloud/Dockerfile/python/3.12/config.json",
+            "end_of_life": "2028-10-31"
+        },
+        "3.13": {
+            "config": "https://app-server.endkind.cloud/Dockerfile/python/3.13/config.json",
+            "end_of_life": "2029-10-31"
+        },
+        "latest": {
+            "config": "https://app-server.endkind.cloud/Dockerfile/python/latest/config.json",
+            "end_of_life": null
+        }
+    }
+}
