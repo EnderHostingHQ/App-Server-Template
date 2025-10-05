@@ -1,6 +1,8 @@
 from result import Ok, Err, Result, is_ok, is_err
 import subprocess
 import os
+import json
+import shutil
 from typing import List, Tuple
 
 from utils import discover_builds
@@ -63,19 +65,104 @@ def build_all(builds: List[Tuple[str, str]] = discover_builds()) -> None:
 
     print("\nStarting builds...\n")
 
+    successful_builds = []
     success_count = 0
+
     for name, tag in builds:
         print(f"--- Building {name}:{tag} ---")
         result = build(name, tag)
 
         if is_ok(result):
             print(f"✅ {result.unwrap()}")
+            successful_builds.append((name, tag))
             success_count += 1
         else:
             print(f"❌ {result.unwrap_err()}")
         print()
 
     print(f"Build complete: {success_count}/{len(builds)} succeeded")
+
+    # Create manifest only with successful builds
+    if successful_builds:
+        print("\nCreating manifest with successful builds...")
+        manifest_result = create_manifest(successful_builds)
+
+        if is_ok(manifest_result):
+            print(f"✅ {manifest_result.unwrap()}")
+        else:
+            print(f"❌ {manifest_result.unwrap_err()}")
+    else:
+        print("\n⚠️ No successful builds to include in manifest")
+
+def create_manifest(builds: List[Tuple[str, str]] = None) -> Result[str, str]:
+    """
+    Create a manifest.json file based on available build configurations.
+
+    Args:
+        builds: Optional list of (name, tag) tuples. If None, discovers builds automatically.
+
+    Returns:
+        Result[str, str]: Ok with success message or Err with error message
+    """
+    try:
+        if builds is None:
+            builds = discover_builds()
+
+        if not builds:
+            return Err("No build configurations found to create manifest")
+
+        manifest = {}
+
+        for name, tag in builds:
+            config_path = f"./{name}/{tag}/config.json"
+
+            if not os.path.exists(config_path):
+                print(f"Warning: Config file not found for {name}:{tag}")
+                continue
+
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+
+                if name not in manifest:
+                    manifest[name] = {}
+
+                manifest_entry = {
+                    "config": f"https://app-server.endkind.cloud/Dockerfile/{name}/{tag}/config.json"
+                }
+
+                end_of_life = config.get('end_of_life')
+                if end_of_life:
+                    manifest_entry["end_of_life"] = end_of_life
+                else:
+                    manifest_entry["end_of_life"] = None
+
+                manifest[name][tag] = manifest_entry
+
+            except (json.JSONDecodeError, Exception) as e:
+                print(f"Warning: Could not process config for {name}:{tag}: {e}")
+                continue
+
+        # Copy config files to project root dist directory
+        for name, tag in builds:
+            config_path = f"./{name}/{tag}/config.json"
+            if os.path.exists(config_path):
+                dist_config_dir = f"../dist/Dockerfile/{name}/{tag}"
+                os.makedirs(dist_config_dir, exist_ok=True)
+
+                dist_config_path = f"{dist_config_dir}/config.json"
+                shutil.copy2(config_path, dist_config_path)
+                print(f"Copied config: {config_path} -> {dist_config_path}")
+
+        # Write manifest to project root dist directory
+        manifest_path = "../dist/Dockerfile/manifest.json"
+        with open(manifest_path, 'w', encoding='utf-8') as f:
+            json.dump(manifest, f, indent=4, ensure_ascii=False)
+
+        return Ok(f"Manifest created successfully at {manifest_path} with {len([tag for name_dict in manifest.values() for tag in name_dict])} configurations")
+
+    except Exception as e:
+        return Err(f"Failed to create manifest: {str(e)}")
 
 if __name__ == "__main__":
     main()
