@@ -4,6 +4,31 @@ from datetime import datetime, date
 from typing import List, Tuple
 
 
+def get_project_root(*paths: str) -> str:
+    """
+    Get the project root path and optionally join additional paths.
+    Since the Python files are located in the 'Dockerfile/' subdirectory,
+    this function navigates up to find the project root.
+
+    Args:
+        *paths: Optional path components to join with the project root
+
+    Returns:
+        str: The project root path, optionally joined with additional paths
+    """
+    # Get the directory of this utils.py file (which is in Dockerfile/)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Navigate up one level to get to the project root
+    project_root = os.path.dirname(current_dir)
+
+    # Join with optional additional paths
+    if paths:
+        return os.path.join(project_root, *paths)
+
+    return project_root
+
+
 def discover_builds() -> List[Tuple[str, str]]:
     """
     Automatically discover available build configurations by scanning directories.
