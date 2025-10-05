@@ -50,7 +50,7 @@ def get_successful_builds_from_manifest() -> List[Tuple[str, str]]:
     Returns:
         List[Tuple[str, str]]: List of (name, tag) tuples from the manifest
     """
-    manifest_path = "../dist/Dockerfile/manifest.json"
+    manifest_path = os.path.join(os.path.dirname(__file__), "..", "dist", "Dockerfile", "manifest.json")
 
     if not os.path.exists(manifest_path):
         print(f"Warning: Manifest file not found at {manifest_path}")
