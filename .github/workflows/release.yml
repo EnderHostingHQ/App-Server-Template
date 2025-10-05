@@ -68,6 +68,10 @@ jobs:
           source .venv/bin/activate
           python push.py
 
+      - name: Prepare dist directory for deployment
+        run: |
+          find ./dist -name ".gitignore" -type f -delete
+
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
