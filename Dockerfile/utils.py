@@ -4,6 +4,34 @@ from datetime import datetime, date
 from typing import List, Tuple
 
 
+def _parse_version_key(tag: str) -> Tuple:
+    """
+    Parse a version tag into a tuple for sorting purposes.
+    Handles semantic versioning with pre-release identifiers.
+
+    Args:
+        tag: Version tag string (e.g., "3.10", "1.2.3-alpha", "latest")
+
+    Returns:
+        Tuple: Sortable tuple where "latest" sorts last, and versions sort naturally
+    """
+    if tag == "latest":
+        return (float('inf'),)
+
+    try:
+        version_part = tag.split('-')[0]
+        version_numbers = [int(x) for x in version_part.split('.')]
+
+        if '-' in tag:
+            pre_release = tag.split('-', 1)[1]
+            return tuple(version_numbers + [0, pre_release])
+        else:
+            return tuple(version_numbers + [1])
+
+    except ValueError:
+        return (tag,)
+
+
 def get_project_root(*paths: str) -> str:
     """
     Get the project root path and optionally join additional paths.
@@ -16,13 +44,10 @@ def get_project_root(*paths: str) -> str:
     Returns:
         str: The project root path, optionally joined with additional paths
     """
-    # Get the directory of this utils.py file (which is in Dockerfile/)
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Navigate up one level to get to the project root
     project_root = os.path.dirname(current_dir)
 
-    # Join with optional additional paths
     if paths:
         return os.path.join(project_root, *paths)
 
@@ -35,7 +60,8 @@ def discover_builds() -> List[Tuple[str, str]]:
     Only returns builds that are not yet in end_of_life status.
 
     Returns:
-        List[Tuple[str, str]]: List of (name, tag) tuples for available builds that are still supported
+        List[Tuple[str, str]]: List of (name, tag) tuples for available builds that are still supported,
+        sorted by name first, then by version (with "latest" at the end of each name group)
     """
     builds = []
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -59,20 +85,21 @@ def discover_builds() -> List[Tuple[str, str]]:
                         with open(config_path, 'r', encoding='utf-8') as f:
                             config = json.load(f)
 
-                        # Check if end_of_life date is in the future
                         end_of_life_str = config.get('end_of_life')
                         if end_of_life_str is not None:
                             end_of_life_date = datetime.strptime(end_of_life_str, '%Y-%m-%d').date()
                             if end_of_life_date > today:
                                 builds.append((item, tag_item))
                         else:
-                            # If end_of_life is null or not specified, include the build
                             builds.append((item, tag_item))
 
                     except (json.JSONDecodeError, ValueError, KeyError) as e:
-                        # If config.json is malformed or end_of_life date is invalid,
-                        # skip this build for safety
                         print(f"Warning: Could not parse config for {item}/{tag_item}: {e}")
                         continue
 
+    def sort_key(build_tuple):
+        name, tag = build_tuple
+        return (name, _parse_version_key(tag))
+
+    builds.sort(key=sort_key)
     return builds
