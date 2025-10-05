@@ -16,13 +16,10 @@ def get_project_root(*paths: str) -> str:
     Returns:
         str: The project root path, optionally joined with additional paths
     """
-    # Get the directory of this utils.py file (which is in Dockerfile/)
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Navigate up one level to get to the project root
     project_root = os.path.dirname(current_dir)
 
-    # Join with optional additional paths
     if paths:
         return os.path.join(project_root, *paths)
 
@@ -35,7 +32,8 @@ def discover_builds() -> List[Tuple[str, str]]:
     Only returns builds that are not yet in end_of_life status.
 
     Returns:
-        List[Tuple[str, str]]: List of (name, tag) tuples for available builds that are still supported
+        List[Tuple[str, str]]: List of (name, tag) tuples for available builds that are still supported,
+        sorted by name first, then by version (with "latest" at the end of each name group)
     """
     builds = []
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -59,20 +57,30 @@ def discover_builds() -> List[Tuple[str, str]]:
                         with open(config_path, 'r', encoding='utf-8') as f:
                             config = json.load(f)
 
-                        # Check if end_of_life date is in the future
                         end_of_life_str = config.get('end_of_life')
                         if end_of_life_str is not None:
                             end_of_life_date = datetime.strptime(end_of_life_str, '%Y-%m-%d').date()
                             if end_of_life_date > today:
                                 builds.append((item, tag_item))
                         else:
-                            # If end_of_life is null or not specified, include the build
                             builds.append((item, tag_item))
 
                     except (json.JSONDecodeError, ValueError, KeyError) as e:
-                        # If config.json is malformed or end_of_life date is invalid,
-                        # skip this build for safety
                         print(f"Warning: Could not parse config for {item}/{tag_item}: {e}")
                         continue
 
+    def sort_key(build_tuple):
+        name, tag = build_tuple
+        if tag == "latest":
+            version_sort_key = (float('inf'),)
+        else:
+            try:
+                version_parts = [int(x) for x in tag.split('.')]
+                version_sort_key = tuple(version_parts)
+            except ValueError:
+                version_sort_key = (tag,)
+
+        return (name, version_sort_key)
+
+    builds.sort(key=sort_key)
     return builds
