@@ -4,6 +4,34 @@ from datetime import datetime, date
 from typing import List, Tuple
 
 
+def _parse_version_key(tag: str) -> Tuple:
+    """
+    Parse a version tag into a tuple for sorting purposes.
+    Handles semantic versioning with pre-release identifiers.
+
+    Args:
+        tag: Version tag string (e.g., "3.10", "1.2.3-alpha", "latest")
+
+    Returns:
+        Tuple: Sortable tuple where "latest" sorts last, and versions sort naturally
+    """
+    if tag == "latest":
+        return (float('inf'),)
+
+    try:
+        version_part = tag.split('-')[0]
+        version_numbers = [int(x) for x in version_part.split('.')]
+
+        if '-' in tag:
+            pre_release = tag.split('-', 1)[1]
+            return tuple(version_numbers + [0, pre_release])
+        else:
+            return tuple(version_numbers + [1])
+
+    except ValueError:
+        return (tag,)
+
+
 def get_project_root(*paths: str) -> str:
     """
     Get the project root path and optionally join additional paths.
@@ -71,16 +99,7 @@ def discover_builds() -> List[Tuple[str, str]]:
 
     def sort_key(build_tuple):
         name, tag = build_tuple
-        if tag == "latest":
-            version_sort_key = (float('inf'),)
-        else:
-            try:
-                version_parts = [int(x) for x in tag.split('.')]
-                version_sort_key = tuple(version_parts)
-            except ValueError:
-                version_sort_key = (tag,)
-
-        return (name, version_sort_key)
+        return (name, _parse_version_key(tag))
 
     builds.sort(key=sort_key)
     return builds
