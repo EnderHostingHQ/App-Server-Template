@@ -173,7 +173,7 @@ def create_manifest(builds: List[Tuple[str, str]] = None) -> Result[str, str]:
         with open(manifest_path, 'w', encoding='utf-8') as f:
             json.dump(manifest, f, indent=4, ensure_ascii=False)
 
-        return Ok(f"Manifest created successfully at {manifest_path} with {len([tag for name_dict in manifest.values() for tag in name_dict])} configurations")
+        return Ok(f"Manifest created successfully at {manifest_path} with {sum(len(tags) for tags in manifest.values())} configurations")
 
     except Exception as e:
         return Err(f"Failed to create manifest: {str(e)}")
