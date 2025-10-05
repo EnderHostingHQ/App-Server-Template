@@ -155,19 +155,16 @@ def create_manifest(builds: List[Tuple[str, str]] = None) -> Result[str, str]:
 
                 manifest[name][tag] = manifest_entry
 
-            except (json.JSONDecodeError, Exception) as e:
-                print(f"Warning: Could not process config for {name}:{tag}: {e}")
-                continue
-
-        for name, tag in builds:
-            config_path = os.path.join(os.path.dirname(__file__), name, tag, "config.json")
-            if os.path.exists(config_path):
                 dist_config_dir = get_project_root("dist", "Dockerfile", name, tag)
                 os.makedirs(dist_config_dir, exist_ok=True)
 
                 dist_config_path = os.path.join(dist_config_dir, "config.json")
                 shutil.copy2(config_path, dist_config_path)
                 print(f"Copied config: {config_path} -> {dist_config_path}")
+
+            except (json.JSONDecodeError, Exception) as e:
+                print(f"Warning: Could not process config for {name}:{tag}: {e}")
+                continue
 
         manifest_path = get_project_root("dist", "Dockerfile", "manifest.json")
         with open(manifest_path, 'w', encoding='utf-8') as f:
