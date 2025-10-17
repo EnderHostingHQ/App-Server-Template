@@ -1,6 +1,8 @@
 {
     "name": "python",
     "version": "latest",
+    "flavor": null,
+    "base": null,
     "end_of_life": null,
     "workdir": "/app",
     "volume": "/app",

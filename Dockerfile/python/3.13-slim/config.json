@@ -1,6 +1,8 @@
 {
     "name": "python",
     "version": "3.13",
+    "flavor": "slim",
+    "base": null,
     "end_of_life": "2029-10-31",
     "workdir": "/app",
     "volume": "/app",
