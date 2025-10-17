@@ -21,7 +21,7 @@ ch
         Result[str, str]: Ok with success message or Err with error message
     """
     try:
-        image_name = f"enderhostinghq/{name}:{tag}"
+        image_name = f"enderhostinghq/app-{name}:{tag}"
 
         cmd = ["docker", "push", image_name]
 
@@ -86,13 +86,13 @@ def push_all(builds: List[Tuple[str, str]] = None) -> None:
 
     print(f"Found {len(builds)} successfully built configurations:")
     for name, tag in builds:
-        print(f"  - {name}:{tag}")
+        print(f"  - app-{name}:{tag}")
 
     print("\nStarting pushes...\n")
 
     success_count = 0
     for name, tag in builds:
-        print(f"--- Pushing {name}:{tag} ---")
+        print(f"--- Pushing app-{name}:{tag} ---")
         result = push(name, tag)
 
         if is_ok(result):

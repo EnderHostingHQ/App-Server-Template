@@ -43,7 +43,7 @@ def build(name: str, tag: str) -> Result[str, str]:
         Result[str, str]: Ok with success message or Err with error message
     """
     try:
-        image_name = f"enderhostinghq/{name}:{tag}"
+        image_name = f"enderhostinghq/app-{name}:{tag}"
 
         context_path = f"./{name}/{tag}"
 
@@ -82,7 +82,7 @@ def build_all(builds: List[Tuple[str, str]] = discover_builds()) -> None:
 
     print(f"Found {len(builds)} build configurations:")
     for name, tag in builds:
-        print(f"  - {name}:{tag}")
+        print(f"  - app-{name}:{tag}")
 
     print("\nStarting builds...\n")
 
@@ -90,7 +90,7 @@ def build_all(builds: List[Tuple[str, str]] = discover_builds()) -> None:
     success_count = 0
 
     for name, tag in builds:
-        print(f"--- Building {name}:{tag} ---")
+        print(f"--- Building app-{name}:{tag} ---")
         result = build(name, tag)
 
         if is_ok(result):
@@ -144,16 +144,18 @@ def create_manifest(builds: List[Tuple[str, str]] = None) -> Result[str, str]:
                 with open(config_path, 'r', encoding='utf-8') as f:
                     config = json.load(f)
 
-                if name not in manifest:
-                    manifest[name] = {}
+                if f"app-{name}" not in manifest:
+                    manifest[f"app-{name}"] = {}
 
                 domain = get_domain()
                 manifest_entry = {
                     "config": f"https://{domain}/Dockerfile/{name}/{tag}/config.json",
-                    "end_of_life": config.get('end_of_life')
+                    "end_of_life": config.get('end_of_life'),
+                    "flavor": config.get('flavor'),
+                    "base": config.get('base')
                 }
 
-                manifest[name][tag] = manifest_entry
+                manifest[f"app-{name}"][tag] = manifest_entry
 
                 dist_config_dir = get_project_root("dist", "Dockerfile", name, tag)
                 os.makedirs(dist_config_dir, exist_ok=True)
