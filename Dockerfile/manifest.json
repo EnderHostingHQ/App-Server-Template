@@ -24,6 +24,12 @@
             "flavor": "slim",
             "base": null
         },
+        "3.14-slim": {
+            "config": "https://app-server.endkind.cloud/Dockerfile/python/3.14-slim/config.json",
+            "end_of_life": "2030-10-31",
+            "flavor": "slim",
+            "base": null
+        },
         "latest": {
             "config": "https://app-server.endkind.cloud/Dockerfile/python/latest/config.json",
             "end_of_life": null,
