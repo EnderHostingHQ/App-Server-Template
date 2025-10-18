@@ -10,11 +10,12 @@ This repository provides Docker images for the following Python versions that ar
 
 | Version | Status | End of Life | Image Tag |
 |---------|--------|-------------|-----------|
-| 3.13 | Bugfix | 2029-10 | `enderhostinghq/python:3.13` |
-| 3.12 | Security | 2028-10 | `enderhostinghq/python:3.12` |
-| 3.11 | Security | 2027-10 | `enderhostinghq/python:3.11` |
-| 3.10 | Security | 2026-10 | `enderhostinghq/python:3.10` |
-| Latest | Alias to 3.13 | - | `enderhostinghq/python:latest` |
+| 3.14 | Bugfix | 2030-10 | `enderhostinghq/app-python:3.14` |
+| 3.13 | Bugfix | 2029-10 | `enderhostinghq/app-python:3.13` |
+| 3.12 | Security | 2028-10 | `enderhostinghq/app-python:3.12` |
+| 3.11 | Security | 2027-10 | `enderhostinghq/app-python:3.11` |
+| 3.10 | Security | 2026-10 | `enderhostinghq/app-python:3.10` |
+| Latest | Alias to 3.13 | - | `enderhostinghq/app-python:latest` |
 
 > **Note**: We only support Python versions that are not end-of-life according to the [official Python release schedule](https://devguide.python.org/versions/).
 
@@ -28,7 +29,7 @@ This repository provides Docker images for the following Python versions that ar
 ### Basic Usage
 
 ```bash
-docker run -v /path/to/your/app:/app enderhostinghq/python:3.13
+docker run -v /path/to/your/app:/app enderhostinghq/app-python:3.13
 ```
 
 ### With Docker Compose
@@ -36,7 +37,7 @@ docker run -v /path/to/your/app:/app enderhostinghq/python:3.13
 ```yaml
 services:
   app:
-    image: enderhostinghq/python:3.13
+    image: enderhostinghq/app-python:3.13
     volumes:
       - ./app:/app
     # Command is optional - defaults to "python main.py"
@@ -74,14 +75,14 @@ The images feature smart dependency handling:
 
 ```bash
 # Place your requirements.txt and main.py in the current directory
-docker run -v $(pwd):/app enderhostinghq/python:3.13
+docker run -v $(pwd):/app enderhostinghq/app-python:3.13
 # Dependencies are automatically installed and main.py is executed
 ```
 
 ### Running a Custom Script
 
 ```bash
-docker run -v $(pwd):/app enderhostinghq/python:3.13 python custom_script.py
+docker run -v $(pwd):/app enderhostinghq/app-python:3.13 python custom_script.py
 ```
 
 ## Building Custom Images
@@ -89,7 +90,7 @@ docker run -v $(pwd):/app enderhostinghq/python:3.13 python custom_script.py
 Use these base images to create your own application-specific containers:
 
 ```dockerfile
-FROM enderhostinghq/python:3.13
+FROM enderhostinghq/app-python:3.13
 
 # Copy your application (requirements.txt will be handled automatically)
 COPY . /app
@@ -124,7 +125,7 @@ To build images locally:
 cd 3.13/
 
 # Build the image
-docker build -t enderhostinghq/python:3.13 .
+docker build -t enderhostinghq/app-python:3.13 .
 ```
 
 ## Support
